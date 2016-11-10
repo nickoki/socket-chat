@@ -12,17 +12,6 @@
       #messages li { padding: 5px 10px; }
       #messages li:nth-child(odd) { background: #eee; }
     </style>
-  </head>
-  <body ng-controller="IndexController as vm">
-
-    <ul id="messages">
-      <li data-ng-repeat="message in vm.messages">{{message.body}}</li>
-    </ul>
-
-    <form ng-submit="vm.sendMessage()">
-      <input ng-model="vm.message" id="m" autocomplete="off" /><button>Send</button>
-    </form>
-
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular-resource.min.js"></script>
@@ -31,16 +20,16 @@
 
       angular
         .module("socketChat", [
-          "ngResource"
+        "ngResource"
         ])
         .controller("IndexController", [
-          "$scope",
-          "MessageFactory",
-          IndexControllerFunction
+        "$scope",
+        "MessageFactory",
+        IndexControllerFunction
         ])
         .factory("MessageFactory", [
-          "$resource",
-          MessageFactoryFunction
+        "$resource",
+        MessageFactoryFunction
         ])
 
       function MessageFactoryFunction($resource) {
@@ -57,18 +46,29 @@
         })
 
         this.sendMessage = function() {
-          socket.emit('chat message', this.message)
-          this.message = ""
+          socket.emit('chat message', this.newMessage)
+          this.newMessage = ""
         }
 
         socket.on('chat message', msg => {
           if (msg) {
             $scope.$apply(() => {
-              this.messages.push({body: msg})
+              this.messages.push({ body: msg })
             })
           }
         })
       }
     </script>
+  </head>
+  <body ng-controller="IndexController as vm">
+
+    <ul id="messages">
+      <li data-ng-repeat="message in vm.messages">{{message.body}}</li>
+    </ul>
+
+    <form ng-submit="vm.sendMessage()">
+      <input ng-model="vm.newMessage" id="m" autocomplete="off" /><button>Send</button>
+    </form>
+
   </body>
 </html>
