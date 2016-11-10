@@ -1,5 +1,5 @@
 <!doctype html>
-<html>
+<html ng-app="socketChat" >
   <head>
     <title>Socket.IO chat</title>
     <style>
@@ -13,23 +13,44 @@
       #messages li:nth-child(odd) { background: #eee; }
     </style>
   </head>
-  <body>
-    <ul id="messages"></ul>
-    <form action="">
-      <input id="m" autocomplete="off" /><button>Send</button>
+  <body ng-controller="IndexController as vm">
+
+    <ul id="messages">
+      <li ng-repeat="message in vm.messages">{{message}}</li>
+    </ul>
+
+    <form ng-submit="vm.sendMessage()">
+      <input ng-model="vm.message" id="m" autocomplete="off" /><button>Send</button>
     </form>
+
     <script src="/socket.io/socket.io.js"></script>
-    <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular-resource.min.js"></script>
     <script>
       var socket = io()
-      $('form').submit(function() {
-        socket.emit('chat message', $('#m').val())
-        $('#m').val('')
-        return false
-      })
-      socket.on('chat message', msg => {
-        $('#messages').append($('<li>').text(msg))
-      })
+
+      angular
+        .module("socketChat", [
+          "ngResource"
+        ])
+        .controller("IndexController", [
+          "$scope",
+          IndexControllerFunction
+        ])
+
+      function IndexControllerFunction($scope) {
+        this.messages = []
+
+        this.sendMessage = event => {
+          socket.emit('chat message', this.message)
+          this.message = ""
+        }
+
+        socket.on('chat message', msg => {
+          this.messages.push(msg)
+          $scope.$apply()
+        })
+      }
     </script>
   </body>
 </html>
