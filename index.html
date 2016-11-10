@@ -16,7 +16,7 @@
   <body ng-controller="IndexController as vm">
 
     <ul id="messages">
-      <li ng-repeat="message in vm.messages">{{message}}</li>
+      <li data-ng-repeat="message in vm.messages">{{message.body}}</li>
     </ul>
 
     <form ng-submit="vm.sendMessage()">
@@ -35,20 +35,38 @@
         ])
         .controller("IndexController", [
           "$scope",
+          "MessageFactory",
           IndexControllerFunction
         ])
+        .factory("MessageFactory", [
+          "$resource",
+          MessageFactoryFunction
+        ])
 
-      function IndexControllerFunction($scope) {
-        this.messages = []
+      function MessageFactoryFunction($resource) {
+        return $resource("/api/messages", {}, {
+          sendMessage: {
+            method: 'PUT'
+          }
+        })
+      }
 
-        this.sendMessage = event => {
+      function IndexControllerFunction($scope, MessageFactory) {
+        MessageFactory.query().$promise.then( messages => {
+          this.messages = messages
+        })
+
+        this.sendMessage = function() {
           socket.emit('chat message', this.message)
           this.message = ""
         }
 
         socket.on('chat message', msg => {
-          this.messages.push(msg)
-          $scope.$apply()
+          if (msg) {
+            $scope.$apply(() => {
+              this.messages.push({body: msg})
+            })
+          }
         })
       }
     </script>
